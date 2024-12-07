@@ -25,6 +25,7 @@ class _GeneralViewState extends State<GeneralView> {
         children: [
           _amountContainer(),
           _dataField(context, itemViewModel),
+          _dataTable(context),
         ],
       ),
     );
@@ -152,7 +153,61 @@ class _GeneralViewState extends State<GeneralView> {
     );
   }
 
-  void _addItem() {
+  Widget _dataTable(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+        ),
+        child: DataTable(
+          columnSpacing: 0,
+          horizontalMargin: 16,
+          headingTextStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+          dataTextStyle: const TextStyle(
+            color: Colors.black87,
+          ),
+          headingRowColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              return Colors.grey[300]!;
+            },
+          ),
+          dataRowColor: WidgetStateProperty.resolveWith<Color>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.selected)) {
+                return Colors.blue[50]!;
+              }
+              return Colors.white;
+            },
+          ),
+          columns: const [
+            DataColumn(label: Text('Name')),
+            DataColumn(label: Text('Price')),
+            DataColumn(label: Text('Qty')),
+            DataColumn(label: Text('Discount')),
+            DataColumn(label: Text('Total')),
+          ],
+          rows: itemList.map((item) {
+            return DataRow(
+              cells: [
+                DataCell(Text(item['itemName'])),
+                DataCell(Text(item['price'].toString())),
+                DataCell(Text(item['quantity'].toString())),
+                DataCell(Text(item['discount'].toString())),
+                DataCell(Text(item['netAmount'].toString())),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _addItem() async {
     try {
       double price = double.parse(priceController.text);
       int quantity = int.parse(quantityController.text);
@@ -161,15 +216,19 @@ class _GeneralViewState extends State<GeneralView> {
 
       double amount = (price * quantity) * (100 - discount) / 100;
 
+      final itemDetails = {
+        'itemName': itemNameController.text,
+        'price': price,
+        'reason': reason,
+        'quantity': quantity,
+        'discount': discount,
+        'netAmount': amount,
+      };
+
+      await DatabaseService().insertItemDetails(itemDetails);
+
       setState(() {
-        itemList.add({
-          'itemName': itemNameController.text,
-          'price': price,
-          'quantity': quantity,
-          'discount': discount,
-          'reason': reason,
-          'amount': amount,
-        });
+        itemList.add(itemDetails);
       });
 
       _clearControllers();
