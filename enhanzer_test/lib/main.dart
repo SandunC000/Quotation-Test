@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:enhanzer_test/repositories/item_repository.dart';
-import 'package:enhanzer_test/services/database_service.dart';
-import 'package:enhanzer_test/viewModels/item_view_model.dart';
-import 'package:enhanzer_test/views/home_view.dart';
+import 'package:enhanzer_test/utilities/global_exports.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: ChangeNotifierProvider(
-        create: (context) => ItemViewModel(ItemRepository(DatabaseService())),
-        child: const HomeView(),
-      ),
+      home: const HomeView(),
     );
   }
 }

@@ -67,30 +67,26 @@ class _GeneralViewState extends State<GeneralView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _dropdownField(itemViewModel),
+        DropdownButtonFormField<Item>(
+          hint: const Text('Items'),
+          items: itemViewModel.items.map((item) {
+            return DropdownMenuItem<Item>(
+              value: item,
+              child: Text(item.itemName),
+            );
+          }).toList(),
+          onChanged: (Item? selectedItem) {
+            if (selectedItem != null) {
+              itemNameController.text = selectedItem.itemName;
+              priceController.text = selectedItem.price.toString();
+            }
+          },
+        ),
         _textField('Reasons', reasonController),
         _textField('Price', priceController,
             keyboardType: TextInputType.number),
         _quantityAndDiscountFields(),
       ],
-    );
-  }
-
-  Widget _dropdownField(ItemViewModel itemViewModel) {
-    return DropdownButtonFormField<Item>(
-      hint: const Text('Items'),
-      items: itemViewModel.items.map((item) {
-        return DropdownMenuItem<Item>(
-          value: item,
-          child: Text(item.itemName),
-        );
-      }).toList(),
-      onChanged: (Item? selectedItem) {
-        if (selectedItem != null) {
-          itemNameController.text = selectedItem.itemName;
-          priceController.text = selectedItem.price.toString();
-        }
-      },
     );
   }
 
@@ -134,7 +130,9 @@ class _GeneralViewState extends State<GeneralView> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                _addItem();
+              },
               child: Container(
                 height: 40,
                 decoration: BoxDecoration(
@@ -152,5 +150,39 @@ class _GeneralViewState extends State<GeneralView> {
         )
       ],
     );
+  }
+
+  void _addItem() {
+    try {
+      double price = double.parse(priceController.text);
+      int quantity = int.parse(quantityController.text);
+      double discount = double.parse(discountController.text);
+      String reason = reasonController.text;
+
+      double amount = (price * quantity) * (100 - discount) / 100;
+
+      setState(() {
+        itemList.add({
+          'itemName': itemNameController.text,
+          'price': price,
+          'quantity': quantity,
+          'discount': discount,
+          'reason': reason,
+          'amount': amount,
+        });
+      });
+
+      _clearControllers();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _clearControllers() {
+    itemNameController.clear();
+    priceController.clear();
+    quantityController.clear();
+    discountController.clear();
+    reasonController.clear();
   }
 }

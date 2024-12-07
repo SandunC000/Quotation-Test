@@ -14,9 +14,7 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'app.db');
-
+    String path = join(await getDatabasesPath(), 'items_database.db');
     return await openDatabase(
       path,
       version: 1,
@@ -26,41 +24,58 @@ class DatabaseService {
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE Item_Details(
+      CREATE TABLE Items(
         id INTEGER PRIMARY KEY,
         itemName TEXT,
         price REAL
       )
     ''');
 
-    await db.insert('Item_Details', {'id': 1, 'itemName': 'Item 1', 'price': 50.00});
-    await db.insert('Item_Details', {'id': 2, 'itemName': 'Item 2', 'price': 60.00});
-    await db.insert('Item_Details', {'id': 3, 'itemName': 'Item 3', 'price': 70.00});
+    await db.insert('Items', {'id': 1, 'itemName': 'Item 1', 'price': 50.00});
+    await db.insert('Items', {'id': 2, 'itemName': 'Item 2', 'price': 60.00});
+    await db.insert('Items', {'id': 3, 'itemName': 'Item 3', 'price': 70.00});
+
+    await db.execute('''
+      CREATE TABLE Items_Details(
+        id INTEGER PRIMARY KEY,
+        itemName TEXT,
+        price REAL,
+        quantity INTEGER,
+        discount REAL,
+        netAmount REAL
+      )
+    ''');
   }
 
   Future<void> insertItems(Item item) async {
     final db = await database;
     await db.insert(
-      'Item_Details',
+      'Items',
       item.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> insertItemDetails(Map<String, dynamic> item) async {
+    final db = await database;
+    await db.insert(
+      'Items_Details',
+      item,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   Future<List<Item>> getItems() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('Item_Details');
+    final List<Map<String, dynamic>> maps = await db.query('Items');
     return List.generate(maps.length, (i) {
-      return Item.fromJson(maps[i]);
+      final item = Item.fromJson(maps[i]);
+      return item;
     });
   }
 
-  Future<void> deleteitem(int id) async {
+  Future<List<Map<String, dynamic>>> getItemDetails() async {
     final db = await database;
-    await db.delete(
-      'Item_Details',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.query('Items_Details');
   }
 }
