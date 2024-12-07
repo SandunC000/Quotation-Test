@@ -16,6 +16,8 @@ class _GeneralViewState extends State<GeneralView> {
 
   final List<Map<String, dynamic>> itemList = [];
 
+  double netAmount = 0.0;
+
   @override
   Widget build(BuildContext context) {
     final itemViewModel = Provider.of<ItemViewModel>(context);
@@ -52,7 +54,7 @@ class _GeneralViewState extends State<GeneralView> {
                   fontWeight: FontWeight.bold),
             ),
             Text(
-              currencyFormatter(1000.00),
+              currencyFormatter(netAmount),
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -229,6 +231,7 @@ class _GeneralViewState extends State<GeneralView> {
 
       setState(() {
         itemList.add(itemDetails);
+        netAmount += amount;
       });
 
       _clearControllers();
